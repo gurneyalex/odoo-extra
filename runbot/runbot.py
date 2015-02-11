@@ -145,7 +145,7 @@ def uniq_list(l):
     return OrderedDict.fromkeys(l).keys()
 
 def fqdn():
-    return socket.gethostname()
+    return socket.getfqdn()
 
 #----------------------------------------------------------
 # RunBot Models
@@ -315,7 +315,7 @@ class runbot_repo(osv.osv):
         workers = int(icp.get_param(cr, uid, 'runbot.workers', default=6))
         running_max = int(icp.get_param(cr, uid, 'runbot.running_max', default=75))
         host = fqdn()
-
+        _logger.debug('in scheduler %s', ids)
         Build = self.pool['runbot.build']
         domain = [('repo_id', 'in', ids)]
         domain_host = domain + [('host', '=', host)]
@@ -327,8 +327,8 @@ class runbot_repo(osv.osv):
         # launch new tests
         testing = Build.search_count(cr, uid, domain_host + [('state', '=', 'testing')])
         pending = Build.search_count(cr, uid, domain + [('state', '=', 'pending')])
-
         while testing < workers and pending > 0:
+            _logger.debug('scheduler: testing: %d, workers: %d, pending: %d', testing, workers, pending)
 
             # find sticky pending build if any, otherwise, last pending (by id, not by sequence) will do the job
             pending_ids = Build.search(cr, uid, domain + [('state', '=', 'pending'), ('branch_id.sticky', '=', True)], limit=1)
@@ -341,6 +341,7 @@ class runbot_repo(osv.osv):
             # compute the number of testing and pending jobs again
             testing = Build.search_count(cr, uid, domain_host + [('state', '=', 'testing')])
             pending = Build.search_count(cr, uid, domain + [('state', '=', 'pending')])
+        _logger.debug('scheduler full: testing: %d, workers: %d, pending: %d', testing, workers, pending)
 
         # terminate and reap doomed build
         build_ids = Build.search(cr, uid, domain_host + [('state', '=', 'running')])
@@ -870,6 +871,7 @@ class runbot_build(osv.osv):
         timeout = int(icp.get_param(cr, uid, 'runbot.timeout', default=1800))
 
         for build in self.browse(cr, uid, ids, context=context):
+            _logger.debug('schedule build %r state %s', build.dest, build.state)
             if build.state == 'pending':
                 # allocate port and schedule first job
                 port = self.find_port(cr, uid)
