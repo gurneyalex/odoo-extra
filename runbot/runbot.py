@@ -259,7 +259,12 @@ class runbot_repo(osv.osv):
         if not os.path.isdir(os.path.join(repo.path)):
             os.makedirs(repo.path)
         if not os.path.isdir(os.path.join(repo.path, 'refs')):
-            run(['git', 'clone', '--bare', repo.name, repo.path])
+            if repo.name.startswith('https://') or repo.name.startswith('git@'):
+                repo_name = repo.name
+            else:
+                repo_name = 'https://' + repo.name
+            _logger.info('running %s', ['git', 'clone', '--bare', repo_name, repo.path])
+            run(['git', 'clone', '--bare', repo_name, repo.path])
         else:
             repo.git(['gc', '--auto', '--prune=all'])
             repo.git(['fetch', '-p', 'origin', '+refs/heads/*:refs/heads/*'])
