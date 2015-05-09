@@ -832,7 +832,7 @@ class runbot_build(osv.osv):
                 cmd += ['--db-filter','%d.*$']
             else:
                 cmd += ['--db-filter','%s.*$' % build.dest]
-
+        cmd += ['--db_maxconn', '8']
         ## Web60
         #self.client_web_path=os.path.join(self.running_path,"client-web")
         #self.client_web_bin_path=os.path.join(self.client_web_path,"openerp-web.py")
