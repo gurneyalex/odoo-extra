@@ -271,7 +271,7 @@ class runbot_repo(osv.osv):
         git_refs = git_refs.strip()
 
         refs = [[decode_utf(field) for field in line.split('\x00')] for line in git_refs.split('\n')]
-
+        refs = [ref for ref in refs if len(ref) == 8]  # cleanup empty lines which cause unpack errors below
         for name, sha, date, author, author_email, subject, committer, committer_email in refs:
             # create or get branch
             branch_ids = Branch.search(cr, uid, [('repo_id', '=', repo.id), ('name', '=', name)])
