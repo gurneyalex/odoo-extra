@@ -649,16 +649,19 @@ class runbot_build(osv.osv):
 
             # fallback for addons-only community/project branches
             additional_modules = []
+            explicit_modules = []
+            modules_to_test = []
             if not os.path.isfile(build.server('__init__.py')):
                 # Use modules to test previously configured in the repository
-                modules_to_test = build.modules
+                modules_to_test = build.modules.split(',')
+                explicit_modules = modules_to_test
+                is_server = False
                 if not modules_to_test:
                     # Find modules to test from the folder branch
-                    modules_to_test = ','.join(
+                    modules_to_test = [
                         os.path.basename(os.path.dirname(a))
                         for a in glob.glob(build.path('*/__openerp__.py'))
-                    )
-                build.write({'modules': modules_to_test})
+                    ]
                 hint_branches = set()
                 for extra_repo in build.repo_id.dependency_ids:
                     closest_name = build.get_closest_branch_name(extra_repo.id, hint_branches)
@@ -669,6 +672,8 @@ class runbot_build(osv.osv):
                     os.path.dirname(module)
                     for module in glob.glob(build.path('*/__openerp__.py'))
                 ]
+            else:
+                is_server = True
 
             # move all addons to server addons path
             for module in set(glob.glob(build.path('addons/*')) + additional_modules):
@@ -680,6 +685,28 @@ class runbot_build(osv.osv):
                         'Building environment',
                         'You have duplicate modules in your branches "%s"' % basename
                     )
+            available_modules = [
+                os.path.basename(os.path.dirname(a))
+                for a in glob.glob(build.server('addons/*/__openerp__.py'))
+            ]
+            if is_server:
+                modules_to_test += available_modules
+            modules_to_test = self.filter_modules(cr, uid, modules_to_test,
+                                                  set(available_modules),
+                                                  explicit_modules)
+            build.write({'modules': ','.join(modules_to_test)})
+
+    def filter_modules(self, cr, uid, modules, available_modules, explicit_modules):
+        blacklist_modules = set(['auth_ldap', 'document_ftp', 'base_gengo',
+                                 'website_gengo', 'website_instantclick',
+                                 'pos_cache', 'pos_blackbox_be'])
+
+        mod_filter = lambda m: (
+            m in available_modules and
+            (m in explicit_modules or (not m.startswith(('hw_', 'theme_', 'l10n_'))
+                                       and m not in blacklist_modules))
+        )
+        return uniq_list(filter(mod_filter, modules))
 
     def pg_dropdb(self, cr, uid, dbname):
         run(['dropdb', dbname])
