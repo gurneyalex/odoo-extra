@@ -261,7 +261,10 @@ class runbot_repo(osv.osv):
 
     def update(self, cr, uid, ids, context=None):
         for repo in self.browse(cr, uid, ids, context=context):
-            self.update_git(cr, uid, repo)
+            try:
+                self.update_git(cr, uid, repo)
+            except Exception:
+                _logger.exception('Ignored git error while updating repo %s', repo.name)
 
     def update_git(self, cr, uid, repo, context=None):
         _logger.debug('repo %s updating branches', repo.name)
