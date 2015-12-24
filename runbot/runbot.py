@@ -263,7 +263,7 @@ class runbot_repo(osv.osv):
         for repo in self.browse(cr, uid, ids, context=context):
             try:
                 self.update_git(cr, uid, repo)
-            except Exception:
+            except subprocess.CalledProcessError:
                 _logger.exception('Ignored git error while updating repo %s', repo.name)
 
     def update_git(self, cr, uid, repo, context=None):
