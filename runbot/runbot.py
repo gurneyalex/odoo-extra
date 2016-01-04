@@ -288,7 +288,7 @@ class runbot_repo(osv.osv):
             if repo.mode == 'hook' and repo.hook_time and dt2time(repo.hook_time) < fetch_time:
                 t0 = time.time()
                 _logger.debug('repo %s skip hook fetch fetch_time: %ss ago hook_time: %ss ago',
-                              repo_name, int(t0 - fetch_time), int(t0 - dt2time(repo.hook_time)))
+                              repo.name, int(t0 - fetch_time), int(t0 - dt2time(repo.hook_time)))
                 return
 
         repo.git(['gc', '--auto', '--prune=all'])
