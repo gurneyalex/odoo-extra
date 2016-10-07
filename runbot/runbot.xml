@@ -239,8 +239,8 @@
         <xpath expr="//t[@t-foreach=&quot;website.menu_id.child_id&quot;][@t-as=&quot;submenu&quot;]" position="replace">
             <t t-if="repos" >
                  <t t-foreach="repos[:5]" t-as="re">
-                     <li><a t-attf-href="/runbot/repo/{{slug(re)}}"><i class='fa fa-github' /> <t t-esc="re.name"/></a></li>
--->
+                     <!-- <li><a t-attf-href="/runbot/repo/{{slug(re)}}"><i class='fa fa-github' /> <t t-esc="re.name"/></a></li> -->
+                     <li><a t-attf-href="/runbot/repo/{{slug(re)}}?search={{request.params.get('search', '')}}"><i class='fa fa-github' /> <t t-esc="re.name.split(':')[1]"/></a></li>
                  </t>
             </t>
         </xpath>
@@ -605,6 +605,7 @@
                             Author: <t t-esc="build['author']"/><br/>
                             Committer: <t t-esc="build['committer']"/><br/>
                         </p>
+                        <p t-if="build['duplicate_of']">Duplicate of <a t-attf-href="/runbot/build/#{build['duplicate_of'].id}"><t t-esc="build['duplicate_of'].dest"/></a></p>
                         <table class="table table-condensed table-striped">
                         <tr>
                             <th>Date</th>
@@ -618,7 +619,7 @@
                                 <td><b t-esc="l.level"/></td>
                                 <td><t t-esc="l.type"/></td>
                                 <td>
-                                    <a t-attf-href="https://{{repo.base}}/blob/{{build['name']}}/{{l.path}}#L{{l.line}}"><t t-esc="l.name"/>:<t t-esc="l.line"/></a> <t t-esc="l.func"/>
+                                    <a t-if="l.type != 'runbot'" t-attf-href="https://{{repo.base}}/blob/{{build['name']}}/{{l.path}}#L{{l.line}}"><t t-esc="l.name"/>:<t t-esc="l.line"/></a> <t t-esc="l.func"/>
                                     <t t-if="'\n' not in l.message"><t t-esc="l.message"/></t>
                                     <pre t-if="'\n' in l.message" style="margin:0;padding:0; border: none;"><t t-esc="l.message"/></pre>
                                 </td>
