@@ -314,6 +314,9 @@ class runbot_repo(osv.osv):
 
         refs = [[decode_utf(field) for field in line.split('\x00')] for line in git_refs.split('\n')]
         refs = [ref for ref in refs if len(ref) == 8]  # cleanup empty lines which cause unpack errors below
+        if not refs:
+            _logger.error('no refs for repo %s [%d]', repo.name, repo.id)
+            return
 
         cr.execute("""
             WITH t (branch) AS (SELECT unnest(%s))
