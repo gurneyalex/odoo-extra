@@ -1195,6 +1195,8 @@ class runbot_build(osv.osv):
         root = self.pool['runbot.repo'].root(cr, uid)
         build_dir = os.path.join(root, 'build')
         builds = os.listdir(build_dir)
+        if not builds:
+            return
         cr.execute("""
             SELECT dest
               FROM runbot_build
