@@ -520,8 +520,12 @@ class runbot_branch(osv.osv):
         assert len(ids) == 1
         branch = self.browse(cr, uid, ids[0], context=context)
         repo = branch.repo_id
+        if repo.name.startswith('https://') or repo.name.startswith('git@'):
+            repo_name = repo.name
+        else:
+            repo_name = 'https://' + repo.name
         try:
-            repo.git(['ls-remote', '-q', '--exit-code', repo.name, branch.name])
+            repo.git(['ls-remote', '-q', '--exit-code', repo_name, branch.name])
         except subprocess.CalledProcessError:
             return False
         return True
