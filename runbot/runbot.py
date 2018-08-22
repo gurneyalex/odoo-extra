@@ -55,6 +55,11 @@ openerp.addons.base.ir.ir_cron._intervalTypes['minutes'] = lambda interval: rela
 # RunBot helpers
 #----------------------------------------------------------
 
+def rmtree(path):
+    subprocess.check_call(['rm', '-rf', path])
+
+shutil.rmtree = rmtree
+
 def log(*l, **kw):
     out = [i if isinstance(i, basestring) else repr(i) for i in l] + \
           ["%s=%r" % (k, v) for k, v in kw.items()]
@@ -801,7 +806,8 @@ class runbot_build(osv.osv):
         for build in self.browse(cr, uid, ids, context=context):
             # starts from scratch
             if os.path.isdir(build.path()):
-                shutil.rmtree(build.path())
+                _logger.warning('rmtree %s', build.path())
+                rmtree(build.path())
 
             # runbot log path
             mkdirs([build.path("logs"), build.server('addons')])
@@ -862,7 +868,8 @@ class runbot_build(osv.osv):
                         'Building environment',
                         'You have duplicate modules in your branches "%s"' % basename
                     )
-                    shutil.rmtree(build.server('addons', basename))
+                    _logger.warning('rmtree %s', build.server('addons', basename))
+                    rmtree(build.server('addons', basename))
                 shutil.move(module, build.server('addons'))
             available_modules = [
                 os.path.basename(os.path.dirname(a))
@@ -1208,7 +1215,7 @@ class runbot_build(osv.osv):
         for b in builds:
             path = os.path.join(build_dir, b)
             if b not in actives and os.path.isdir(path):
-                shutil.rmtree(path)
+                rmtree(path)
 
     def kill(self, cr, uid, ids, result=None, context=None):
         for build in self.browse(cr, uid, ids, context=context):
