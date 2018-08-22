@@ -1390,7 +1390,7 @@ class RunbotController(http.Controller):
         if repo_id == 0:
             payload = request.jsonrequest
             _logger.debug('runbot hook payload: %r', payload)
-            reponame = payload.get('repository', {}).get('full_name', 'NOT FOUND').lower()
+            reponame = payload.get('repository', {}).get('full_name', '<NOT FOUND>').lower()
             repo_ids = request.registry['runbot.repo'].search(request.cr, SUPERUSER_ID, [])
             for repo in request.registry['runbot.repo'].browse(request.cr, SUPERUSER_ID, repo_ids):
                 if repo.name.lower().endswith(reponame):
@@ -1398,6 +1398,7 @@ class RunbotController(http.Controller):
             else:
                 repo = None
                 _logger.error('Github hook notification: counld not find repo %s', reponame)
+                _logger.error('Payload: %r', payload)
                 return ""
         else:
             repo = request.registry['runbot.repo'].browse(request.cr, SUPERUSER_ID, [repo_id])
