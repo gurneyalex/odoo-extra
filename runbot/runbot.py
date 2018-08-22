@@ -314,7 +314,8 @@ class runbot_repo(osv.osv):
                               repo.name, int(t0 - fetch_time), int(t0 - dt2time(repo.hook_time)))
                 return
             if repo.mode == 'hook' and not repo.hook_time:
-                repo.hook_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(fetch_time - 1))
+                repo.write({'hook_time':time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(fetch_time - 1))})
+                _logger.info('Updated hook time for repo %s to %s', repo.name, repo.hook_time)
 
         repo.git(['gc', '--auto', '--prune=all'])
         repo.git(['fetch', '-p', 'origin', '+refs/heads/*:refs/heads/*'])
