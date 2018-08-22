@@ -1397,7 +1397,6 @@ class RunbotController(http.Controller):
     def hook(self, repo_id=None, **post):
         if repo_id == 0:
             payload = request.jsonrequest
-            _logger.debug('runbot hook payload: %r', payload)
             reponame = payload.get('repository', {}).get('full_name', '<NOT FOUND>').lower()
             repo_ids = request.registry['runbot.repo'].search(request.cr, SUPERUSER_ID, [])
             for repo in request.registry['runbot.repo'].browse(request.cr, SUPERUSER_ID, repo_ids):
