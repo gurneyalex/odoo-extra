@@ -278,6 +278,7 @@ class runbot_repo(osv.osv):
 
     def update(self, cr, uid, ids, context=None):
         for repo in self.browse(cr, uid, ids, context=context):
+            _logger.info('update %s', repo.name)
             try:
                 self.update_git(cr, uid, repo)
             except subprocess.CalledProcessError:
@@ -1384,11 +1385,24 @@ class RunbotController(http.Controller):
 
         return request.render("runbot.repo", context)
 
-    @http.route(['/runbot/hook/<int:repo_id>'], type='http', auth="public", website=True)
+    @http.route(['/runbot/hook/<int:repo_id>'], type='json', auth="public", website=True)
     def hook(self, repo_id=None, **post):
-        # TODO if repo_id == None parse the json['repository']['ssh_url'] and find the right repo
-        repo = request.registry['runbot.repo'].browse(request.cr, SUPERUSER_ID, [repo_id])
+        if repo_id == 0:
+            payload = request.jsonrequest
+            _logger.debug('runbot hook payload: %r', payload)
+            reponame = payload.get('repository', {}).get('full_name', 'NOT FOUND').lower()
+            repo_ids = request.registry['runbot.repo'].search(request.cr, SUPERUSER_ID, [])
+            for repo in request.registry['runbot.repo'].browse(request.cr, SUPERUSER_ID, repo_ids):
+                if repo.name.lower().endswith(reponame):
+                    break
+            else:
+                repo = None
+                _logger.error('Github hook notification: counld not find repo %s', reponame)
+                return ""
+        else:
+            repo = request.registry['runbot.repo'].browse(request.cr, SUPERUSER_ID, [repo_id])
         repo.hook_time = datetime.datetime.now().strftime(openerp.tools.DEFAULT_SERVER_DATETIME_FORMAT)
+        _logger.info('Github hook notification for repository %s', repo.name)
         return ""
 
     @http.route(['/runbot/dashboard'], type='http', auth="public", website=True)
