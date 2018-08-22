@@ -304,7 +304,7 @@ class runbot_repo(osv.osv):
         _logger.debug("mode %s, hook_time %s, fetch_time %s",
                       repo.mode,
                       dt2time(repo.hook_time) if repo.hook_time else "NONE",
-                      path.getmtime(fname_fetch_head)
+                      os.path.getmtime(fname_fetch_head)
                       if os.path.isfile(fname_fetch_head) else "NO FETCH HEAD")
         if os.path.isfile(fname_fetch_head):
             fetch_time = os.path.getmtime(fname_fetch_head)
